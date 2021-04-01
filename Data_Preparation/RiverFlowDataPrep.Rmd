@@ -1,0 +1,79 @@
+---
+title: "ClimateAi River Flow Analysis Data Preparation"
+author: "Scott Burstein"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r load_data}
+require("reticulate")
+py_install("pandas")
+source_python("read_pickle.py")
+pickle_data <- read_pickle_file('/Users/ScottBurstein/Desktop/ClimateAi_Challenge/uke_eggedal_data_challenge (1).pkl')
+```
+
+```{r create_df}
+
+#convert flow data to dataframe in R
+flow_dates <- data.frame(py_to_r(pickle_data[["flow_dates"]]))
+flow <- data.frame(pickle_data[["flow"]])
+
+#rename variables
+names(flow_dates) <- "flow_dates"
+names(flow) <- "flow"
+
+#bind column variables
+flow_df <- cbind(flow_dates, flow)
+
+#convert obs data to dataframe in R
+obs_dates <- data.frame(py_to_r(pickle_data[["obs_dates"]]))
+obs_tas <- data.frame(pickle_data[["obs_tas"]])
+obs_pr <- data.frame(pickle_data[["obs_pr"]])
+#obs_lon_lat <- data.frame(pickle_data[["obs_lon_lat"]])
+
+#rename variables
+names(obs_dates) <- "obs_dates"
+
+names(obs_tas) <- "obs_tas"
+names(obs_pr) <- "obs_pr"
+#names(obs_lon_lat) <- "obs_lon_lat"
+
+#bind column variables
+obs_df <- cbind(obs_dates, obs_tas, obs_pr) #obs_lon_lat
+
+#rename obs_tas station measurements
+names(obs_df)[2] <- "obs_tas_1"
+names(obs_df)[3] <- "obs_tas_2"
+names(obs_df)[4] <- "obs_tas_3"
+names(obs_df)[5] <- "obs_tas_4"
+names(obs_df)[6] <- "obs_tas_5"
+names(obs_df)[7] <- "obs_tas_6"
+names(obs_df)[8] <- "obs_tas_7"
+names(obs_df)[9] <- "obs_tas_8"
+names(obs_df)[10] <- "obs_tas_9"
+
+#rename obs_pr station measurements
+names(obs_df)[11] <- "obs_pr_1"
+names(obs_df)[12] <- "obs_pr_2"
+names(obs_df)[13] <- "obs_pr_3"
+names(obs_df)[14] <- "obs_pr_4"
+names(obs_df)[15] <- "obs_pr_5"
+names(obs_df)[16] <- "obs_pr_6"
+names(obs_df)[17] <- "obs_pr_7"
+names(obs_df)[18] <- "obs_pr_8"
+names(obs_df)[19] <- "obs_pr_9"
+```
+
+```{r merge-dfs}
+#merge flow_df and obs_df together using inner join by dates
+flow_and_obs_df <- merge(flow_df, obs_df, by.x="flow_dates", by.y="obs_dates")
+names(flow_and_obs_df)[1] <- "date"
+
+#dates measured in both obs_df and flow_df are 1958-01-04
+
+#export data
+write.csv(flow_and_obs_df,"/Users/ScottBurstein/Desktop/RiverData.csv", row.names = FALSE)
+#Change the csv save location based on where you would like the file to be saved
+```
+
